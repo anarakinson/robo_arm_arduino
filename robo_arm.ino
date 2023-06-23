@@ -89,10 +89,10 @@ void auto_state() {
     button_press();
   }
 
-  if (millis() - auto_timer > 25) {
+  if (millis() - auto_timer > 10) {
     auto_timer = millis();
 
-    const short auto_counter_limit = 100;
+    const short auto_counter_limit = 150;
     if (auto_counter > auto_counter_limit) { 
       auto_counter = 0; 
       ++positions_counter_auto;
