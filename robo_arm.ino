@@ -21,21 +21,27 @@ Servo servo2;
 Servo servo_base;
 Servo servo_claw;
 
-unsigned long long serial_counter = 0;
-unsigned long long input_counter = 0;
+unsigned long long serial_timer = 0;
+unsigned long long auto_timer = 0;
+unsigned long long input_timer = 0;
+unsigned long long doubleclick_timer = 0;
 
-int rotate0, rotate1, rotate2, rotate_base, rotate_claw;  
-int angle0, angle1, angle2, angle_base, angle_claw;  
+short rotate0, rotate1, rotate2, rotate_base, rotate_claw;  
+short angle0, angle1, angle2, angle_base, angle_claw;  
 
-int positions0[25] = {};
-int positions1[25] = {};
-int positions2[25] = {};
-int positions_base[25] = {};
-int positions_claw[25] = {};
-int positions_counter = 0;
+#define positions_limit 30
+short positions0[positions_limit] = {};
+short positions1[positions_limit] = {};
+short positions2[positions_limit] = {};
+short positions_base[positions_limit] = {};
+short positions_claw[positions_limit] = {};
+short positions_counter = 0;
+short positions_counter_auto = 0;
+short auto_counter = 1;
 
 bool button = 0;
 bool button_flag = 0;
+short clicks = 0;
 
 bool manual_control = 1;
 
@@ -44,8 +50,8 @@ void manual_state() {
 
   button = !digitalRead(BUTTON_PIN);
 
-  if (millis() - input_counter >= 50) {
-    input_counter = millis();
+  if (millis() - input_timer >= 50) {
+    input_timer = millis();
     
     rotate0 = analogRead(INPUT_PIN0);
     rotate1 = analogRead(INPUT_PIN1);
@@ -78,21 +84,62 @@ void manual_state() {
 
 void auto_state() {
   button = !digitalRead(BUTTON_PIN);
-  if (millis() - input_counter >= 50) {
-    input_counter = millis();
+  if (millis() - input_timer >= 50) {
+    input_timer = millis();
     button_press();
+  }
+
+  if (millis() - auto_timer > 50) {
+    auto_timer = millis();
+
+    const short auto_counter_limit = 35;
+    if (auto_counter > auto_counter_limit) { 
+      auto_counter = 0; 
+      ++positions_counter_auto;
+      if (positions_counter_auto >= (positions_counter - 1)) { positions_counter_auto = 0; }
+    }
+
+    
+    short i = positions_counter_auto;
+    angle0 = positions0[i] + ((positions0[i + 1] - positions0[i]) / auto_counter_limit) * auto_counter;
+    angle1 = positions1[i] + ((positions1[i + 1] - positions1[i]) / auto_counter_limit) * auto_counter;
+    angle2 = positions2[i] + ((positions2[i + 1] - positions2[i]) / auto_counter_limit) * auto_counter;
+    angle_base = positions_base[i] + ((positions_base[i + 1] - positions_base[i]) / auto_counter_limit) * auto_counter;
+    angle_claw = positions_claw[i] + ((positions_claw[i + 1] - positions_claw[i]) / auto_counter_limit) * auto_counter;
+    
+    ++auto_counter;
+
+    servo0.write(angle0);
+    servo1.write(angle1);
+    servo2.write(angle2);
+    servo_base.write(angle_base);
+    servo_claw.write(angle_claw);
+
+  }
+  
+
+  if (manual_control) {
+    positions_counter = 0;
   }
 }
 
+
 void button_press() {
+
+  if (millis() - doubleclick_timer > 500) {  
+    doubleclick_timer = millis();
+    clicks = 0;
+  }
+
   if (button == 1 && button_flag == 0) {
+      ++clicks;
       button_flag = 1;
 
       manual_control = !doubleclick();
       
       if (!manual_control) {
         return;
-      } else if (positions_counter < 20) {
+      } else if (positions_counter < positions_limit) {
         positions0[positions_counter] = angle0; 
         positions1[positions_counter] = angle1; 
         positions2[positions_counter] = angle2; 
@@ -107,11 +154,26 @@ void button_press() {
     return;
 }
 
-bool doubleclick() {
-  // if (input_counter - doubleclick_counter < 100) {  
-  //   return true;
-  // }
+bool doubleclick() {  
+  if (clicks > 1) {
+    return true;
+  }
   return false;
+}
+
+
+int process_value(int val, int lowest) {
+
+  int highest = 1023 - lowest;
+  val = map(val, 0, 1023, 1023, 0);
+  if (val < lowest) {
+    val =  lowest;
+  } else if (val > highest) {
+    val = highest;
+  }
+
+  return map(val, lowest, highest, 0, 180);
+
 }
 
 
@@ -136,21 +198,6 @@ void setup() {
   Serial.begin(115200);
 }
 
-int process_value(int val, int lowest) {
-
-  // int lowest = 230;
-  int highest = 1023 - lowest;
-  val = map(val, 0, 1023, 1023, 0);
-  if (val < lowest) {
-    val =  lowest;
-  } else if (val > highest) {
-    val = highest;
-  }
-
-  return map(val, lowest, highest, 0, 180);
-
-}
-
 void loop() {
   // CHOSE STATEMENT
   // manual_control = choose_statement();
@@ -160,9 +207,10 @@ void loop() {
     auto_state();
   }
 
+
   // DEBUG
-  if (millis() - serial_counter >= 100) {
-    serial_counter = millis();
+  if (millis() - serial_timer >= 100) {
+    serial_timer = millis();
     // Serial.print(rotate0);
     // Serial.print(" - ");
     // Serial.print(rotate1);
@@ -189,6 +237,9 @@ void loop() {
     
     Serial.print(" - manual_control - ");
     Serial.print(manual_control);
+    
+    Serial.print(" - clicks - ");
+    Serial.print(clicks);
     
 
     Serial.println();
