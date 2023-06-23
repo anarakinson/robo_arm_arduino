@@ -129,8 +129,19 @@ void auto_state() {
 
 void button_press() {
 
-  if (millis() - doubleclick_timer > 750) {  
+  if (millis() - doubleclick_timer > 500) {  
     doubleclick_timer = millis();
+    if (clicks == 2) {
+      manual_control = !manual_control;
+    } else if (clicks == 1 && positions_counter < positions_limit) {
+      positions0[positions_counter] = angle0; 
+      positions1[positions_counter] = angle1; 
+      positions2[positions_counter] = angle2; 
+      positions_base[positions_counter] = angle_base; 
+      positions_claw[positions_counter] = angle_claw; 
+      ++positions_counter;
+    }
+
     clicks = 0;
   }
 
@@ -138,30 +149,14 @@ void button_press() {
       ++clicks;
       button_flag = 1;
 
-      manual_control = !doubleclick();
-      
       if (!manual_control) {
         return;
-      } else if (positions_counter < positions_limit) {
-        positions0[positions_counter] = angle0; 
-        positions1[positions_counter] = angle1; 
-        positions2[positions_counter] = angle2; 
-        positions_base[positions_counter] = angle_base; 
-        positions_claw[positions_counter] = angle_claw; 
-        ++positions_counter;
       }
     }
     else if (button == 0 && button_flag == 1) {
       button_flag = 0;
     }
     return;
-}
-
-bool doubleclick() {  
-  if (clicks > 1) {
-    return true;
-  }
-  return false;
 }
 
 
