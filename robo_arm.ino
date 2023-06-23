@@ -89,10 +89,10 @@ void auto_state() {
     button_press();
   }
 
-  if (millis() - auto_timer > 50) {
+  if (millis() - auto_timer > 25) {
     auto_timer = millis();
 
-    const short auto_counter_limit = 50;
+    const short auto_counter_limit = 100;
     if (auto_counter > auto_counter_limit) { 
       auto_counter = 0; 
       ++positions_counter_auto;
@@ -104,11 +104,11 @@ void auto_state() {
     short j = positions_counter_auto + 1;
     if (i == positions_counter - 1) { j = 0; }
     
-    angle0 = positions0[i] + ((positions0[j] - positions0[i]) / auto_counter_limit) * auto_counter * 1.75;
-    angle1 = positions1[i] + ((positions1[j] - positions1[i]) / auto_counter_limit) * auto_counter * 1.75;
-    angle2 = positions2[i] + ((positions2[j] - positions2[i]) / auto_counter_limit) * auto_counter * 1.75;
-    angle_base = positions_base[i] + ((positions_base[j] - positions_base[i]) / auto_counter_limit) * auto_counter * 1.75;
-    angle_claw = positions_claw[i] + ((positions_claw[j] - positions_claw[i]) / auto_counter_limit) * auto_counter * 1.75;
+    angle0 = positions0[i] + ((positions0[j] - positions0[i]) * auto_counter) / auto_counter_limit;
+    angle1 = positions1[i] + ((positions1[j] - positions1[i]) * auto_counter) / auto_counter_limit;
+    angle2 = positions2[i] + ((positions2[j] - positions2[i]) * auto_counter) / auto_counter_limit;
+    angle_base = positions_base[i] + ((positions_base[j] - positions_base[i]) * auto_counter) / auto_counter_limit;
+    angle_claw = positions_claw[i] + ((positions_claw[j] - positions_claw[i]) * auto_counter) / auto_counter_limit;
     
     ++auto_counter;
 
