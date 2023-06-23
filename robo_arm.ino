@@ -37,7 +37,7 @@ short positions_base[positions_limit] = {};
 short positions_claw[positions_limit] = {};
 short positions_counter = 0;
 short positions_counter_auto = 0;
-short auto_counter = 1;
+short auto_counter = 0;
 
 bool button = 0;
 bool button_flag = 0;
@@ -50,7 +50,7 @@ void manual_state() {
 
   button = !digitalRead(BUTTON_PIN);
 
-  if (millis() - input_timer >= 50) {
+  if (millis() - input_timer >= 10) {
     input_timer = millis();
     
     rotate0 = analogRead(INPUT_PIN0);
@@ -84,7 +84,7 @@ void manual_state() {
 
 void auto_state() {
   button = !digitalRead(BUTTON_PIN);
-  if (millis() - input_timer >= 50) {
+  if (millis() - input_timer >= 10) {
     input_timer = millis();
     button_press();
   }
@@ -92,20 +92,23 @@ void auto_state() {
   if (millis() - auto_timer > 50) {
     auto_timer = millis();
 
-    const short auto_counter_limit = 35;
+    const short auto_counter_limit = 50;
     if (auto_counter > auto_counter_limit) { 
       auto_counter = 0; 
       ++positions_counter_auto;
-      if (positions_counter_auto >= (positions_counter - 1)) { positions_counter_auto = 0; }
+      if (positions_counter_auto > (positions_counter - 1)) { positions_counter_auto = 0; }
     }
 
     
     short i = positions_counter_auto;
-    angle0 = positions0[i] + ((positions0[i + 1] - positions0[i]) / auto_counter_limit) * auto_counter;
-    angle1 = positions1[i] + ((positions1[i + 1] - positions1[i]) / auto_counter_limit) * auto_counter;
-    angle2 = positions2[i] + ((positions2[i + 1] - positions2[i]) / auto_counter_limit) * auto_counter;
-    angle_base = positions_base[i] + ((positions_base[i + 1] - positions_base[i]) / auto_counter_limit) * auto_counter;
-    angle_claw = positions_claw[i] + ((positions_claw[i + 1] - positions_claw[i]) / auto_counter_limit) * auto_counter;
+    short j = positions_counter_auto + 1;
+    if (i == positions_counter - 1) { j = 0; }
+    
+    angle0 = positions0[i] + ((positions0[j] - positions0[i]) / auto_counter_limit) * auto_counter * 1.5;
+    angle1 = positions1[i] + ((positions1[j] - positions1[i]) / auto_counter_limit) * auto_counter * 1.5;
+    angle2 = positions2[i] + ((positions2[j] - positions2[i]) / auto_counter_limit) * auto_counter * 1.5;
+    angle_base = positions_base[i] + ((positions_base[j] - positions_base[i]) / auto_counter_limit) * auto_counter * 1.5;
+    angle_claw = positions_claw[i] + ((positions_claw[j] - positions_claw[i]) / auto_counter_limit) * auto_counter * 1.5;
     
     ++auto_counter;
 
@@ -126,7 +129,7 @@ void auto_state() {
 
 void button_press() {
 
-  if (millis() - doubleclick_timer > 500) {  
+  if (millis() - doubleclick_timer > 750) {  
     doubleclick_timer = millis();
     clicks = 0;
   }
@@ -211,29 +214,18 @@ void loop() {
   // DEBUG
   if (millis() - serial_timer >= 100) {
     serial_timer = millis();
-    // Serial.print(rotate0);
-    // Serial.print(" - ");
-    // Serial.print(rotate1);
-    // Serial.print(" - ");
-    // Serial.print(rotate2);
-    // Serial.print(" - ");
-    // Serial.print(rotate_base);
-    // Serial.print(" - ");
-    // Serial.print(rotate_claw);
-    // Serial.print(" - ");
-    // Serial.print(button_flag);
-    // Serial.print(" - ");
+
     Serial.print(positions_counter);
     Serial.print(" - positions - ");
-    Serial.print(positions0[0]);
+    Serial.print(angle0);
     Serial.print(" - ");
-    Serial.print(positions0[1]);
+    Serial.print(angle1);
     Serial.print(" - ");
-    Serial.print(positions0[2]);
+    Serial.print(angle2);
     Serial.print(" - ");
-    Serial.print(positions0[3]);
+    Serial.print(angle_base);
     Serial.print(" - ");
-    Serial.print(positions0[4]);
+    Serial.print(angle_claw);
     
     Serial.print(" - manual_control - ");
     Serial.print(manual_control);
