@@ -129,10 +129,11 @@ void auto_state() {
 
 void button_press() {
 
-  if (millis() - doubleclick_timer > 500) {  
+  if (millis() - doubleclick_timer > 750) {  
     doubleclick_timer = millis();
     if (clicks == 2) {
       manual_control = !manual_control;
+      positions_counter_auto = 0;
     } else if (clicks == 1 && positions_counter < positions_limit) {
       positions0[positions_counter] = angle0; 
       positions1[positions_counter] = angle1; 
