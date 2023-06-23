@@ -104,11 +104,11 @@ void auto_state() {
     short j = positions_counter_auto + 1;
     if (i == positions_counter - 1) { j = 0; }
     
-    angle0 = positions0[i] + ((positions0[j] - positions0[i]) / auto_counter_limit) * auto_counter * 1.5;
-    angle1 = positions1[i] + ((positions1[j] - positions1[i]) / auto_counter_limit) * auto_counter * 1.5;
-    angle2 = positions2[i] + ((positions2[j] - positions2[i]) / auto_counter_limit) * auto_counter * 1.5;
-    angle_base = positions_base[i] + ((positions_base[j] - positions_base[i]) / auto_counter_limit) * auto_counter * 1.5;
-    angle_claw = positions_claw[i] + ((positions_claw[j] - positions_claw[i]) / auto_counter_limit) * auto_counter * 1.5;
+    angle0 = positions0[i] + ((positions0[j] - positions0[i]) / auto_counter_limit) * auto_counter * 1.75;
+    angle1 = positions1[i] + ((positions1[j] - positions1[i]) / auto_counter_limit) * auto_counter * 1.75;
+    angle2 = positions2[i] + ((positions2[j] - positions2[i]) / auto_counter_limit) * auto_counter * 1.75;
+    angle_base = positions_base[i] + ((positions_base[j] - positions_base[i]) / auto_counter_limit) * auto_counter * 1.75;
+    angle_claw = positions_claw[i] + ((positions_claw[j] - positions_claw[i]) / auto_counter_limit) * auto_counter * 1.75;
     
     ++auto_counter;
 
