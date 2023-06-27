@@ -123,6 +123,7 @@ void auto_state() {
 
   if (manual_control) {
     positions_counter = 0;
+    auto_counter = 0;
   }
 }
 
